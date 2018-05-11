@@ -1,5 +1,21 @@
-#include<linux/kernel.h>
-#include<linux/modules.h>
+#include<linux/module.h>
+#include<linux/cdev.h>
+#include<linux/slab.h>
+#include<linux/sched.h>
+#include<asm/current.h>
+#include<linux/fs.h>
+#include<asm/uaccess.h>
+#include<linux/init.h>
+
+
+#define MAX_LENGTH 4000
+#define CHAR_DEV_NAME "veda_cdrv"
+#define SUCCESS 0
+
+static char *char_device_buf;
+struct cdev *veda_cdev;
+dev_t mydev;
+int count = 1;
 
 /*****************************************************************************
  * This function is called when a user wants to use this device and has
@@ -20,11 +36,12 @@ static int char_dev_open(struct inode *inode, struct file *file)
     static int counter = 0;
     counter++;
     printk(KERN_INFO"Number of times open() was called : %d\n",counter);
-    printk(KERN_INFO"MAJOR Number : %d, MINOR Number : %d\n",major(inode),minor(inode));
+    printk(KERN_INFO"MAJOR Number : %d, MINOR Number : %d\n",imajor(inode),iminor(inode));
     printk(KERN_INFO"process id of the current process :%d\n",current->pid);
     printk(KERN_INFO"ref = %d\n", module_refcount(THIS_MODULE));
     return SUCCESS;
 }
+
 
 /*****************************************************************************
 This function is called when the user program uses close() function
@@ -36,10 +53,12 @@ the kernel will unload . the driver from the memory.
 Return value :
         Always returns SUCCESS
 *****************************************************************************/
+
 static int char_dev_release(struct inode *inode, struct file *file)
 {
     return SUCCESS;
 }
+
 
 /*****************************************************************************
 This function is called when the user calls reed on this device
@@ -55,7 +74,7 @@ Understanding the parameters
 The function returns the number of bytes(characters)read.
 *****************************************************************************/
 
-static size_t char_dev_read(struct file *file, char *buf, size_t lbuf, loff_t *ppos)
+static ssize_t char_dev_read(struct file *file, char *buf, size_t lbuf, loff_t *ppos)
 {
     int maxbytes;   /* Number of bytes from ppos to MAX_LENGTH */
     int bytes_to_do;    /*number of bytes to read*/
@@ -93,7 +112,7 @@ understanding the parameters
 The function returs the number of characters(bytes) written
 *****************************************************************************/
 
-static int char_dev_write(struct file *file, const char *but, size t lbuf, loff:t .ppos)
+static ssize_t char_dev_write(struct file *file, const char *buf, size_t lbuf, loff_t *ppos)
 {
    int nbytes; /* Number of bytes written */ 
    int bytes_to_do; /* Number of bytes to write */ 
@@ -150,7 +169,7 @@ static loff_t char_dev_lseek(struct file *file, loff_t offset, int orig)
    testpos = testpos < MAX_LENGTH ? testpos : MAX_LENGTH;
    testpos = testpos >= 0 ? testpos : 0;
    file->f_pos = testpos;
-   printk(KERN_INFO 'Seeking to pos = %ld\n", (long)testpos);
+   printk(KERN_INFO "Seeking to pos = %ld\n", (long)testpos);
    return testpos;
 }
           
@@ -178,7 +197,7 @@ static __init int char_dev_init(void)
    
    if (!(veda_cdev  = cdev_alloc()))
    {
-      printk(KERN_ERR."cdev_alloc() failed\n");
+      printk(KERN_ERR "cdev_alloc() failed\n");
       unregister_chrdev_region(mydev, count);
       return -1;
    }
@@ -192,8 +211,8 @@ static __init int char_dev_init(void)
       unregister_chrdev_region(mydev, count);
       return -1;
    }
-   printk(KERN_INF0"\nDevice Registered: %s\n", CHAR_DEV_NAME);  
-   printk(KERN_INF0"Major number= %d, Minor number = %d\n",MAJOR(mydev), MINOR(mydev));
+   printk(KERN_INFO "\nDevice Registered: %s\n", CHAR_DEV_NAME);  
+   printk(KERN_INFO "Major number= %d, Minor number = %d\n", MAJOR(mydev), MINOR(mydev));
    
    char_device_buf =(char *)kmalloc(MAX_LENGTH,GFP_KERNEL); 
    return 0;
@@ -213,7 +232,7 @@ static __exit void char_dev_exit(void)
 module_init(char_dev_init);
 module_exit(char_dev_exit);
           
-MODULE_AUTHOR("VEDA")
+MODULE_AUTHOR("VEDA");
 MODULE_DESCRIPTION("CHARACTER DEVICE DRIVER - TEST");
 MODULE_LICENSE("GPL");          
              
