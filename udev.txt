@@ -1,0 +1,13 @@
+udev
+HAL deamon -- ps -AF | more --- hald
+
+lshal --which will show us the devices currently pluged in and HAL deamon is responsible to maintain this list
+Complete device list you can acquire using lshal command
+
+kernel thread --> hot plug 
+there is one kernel thread which monitors the database of HAL deamon. It monitors the events device add and device remove
+Whenever a device add takes place there will be a new entry in device list maintained by HAL deamon. 
+Whenever a device remove there will a change a remove event on that particular database.
+The whole thing is monitoring by a kernel thread named hot plug which is maintaining the device tree
+
+
