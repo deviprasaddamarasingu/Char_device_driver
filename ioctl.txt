@@ -1,0 +1,29 @@
+-------------------------------------------
+IOCTL
+
+255 different cases can be supported as part of the single IOCTL call
+
+step1: figure out possible number of special operations possible on the device
+step2:we need to create request command to access the operations and request command should be unique through out the all drivers.
+step3: need to implement the ioctl function in the driver source and then provide a switch case kind of implementation for each of those commands and process those commands when the application used those API's to initiate the request
+
+
+in param - application writes and driver reads
+out param - driver writes and application reads
+
+VEDA_FILL_ZERO -- no input required --> _IO
+VEDA_FILL_CHAR -- in param --> _IOW
+VEDA_SET_SIZE -- in param --> _IOW
+VEDA_GET_SIZE -- out param --> _IOR
+
+In coding -->
+step1: verify the arguments
+	ioctl decode macros
+	_IOC_TYPE(cmd) - it will extract the magic number from the cmd
+	_IOC_NR(cmd)- it will get the sequence numbers from the cmd
+	_IOC_DIR(cmd)- direction 
+step2: implementation of switch case
+
+
+
+-------------------------------------------
